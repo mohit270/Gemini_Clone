@@ -1,6 +1,8 @@
 # AI Content Generator (Gemini Clone)  
 [Live Demo](https://your-live-link.com)  
 
+**Completion Date:** 25/09/2025  
+
 AI Content Generator is a full-stack app using React.js, Node.js, MongoDB & Google Gemini API. Features login/signup, chat history, voice input, copy-to-clipboard, and a subscription model. Responsive Gemini-style UI, deployed on Google Cloud.
 
 ## Features
@@ -20,4 +22,4 @@ AI Content Generator is a full-stack app using React.js, Node.js, MongoDB & Goog
 ## Setup
 1. Clone the repo:  
    ```bash
-   git clone https://github.com/your-username/ai-content-generator.git
+  
