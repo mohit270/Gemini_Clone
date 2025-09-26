@@ -1,10 +1,8 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-
-const GEMINI_API_KEY = "AIzaSyAsFXwRKDNF68oNYyLe6TTn-yhSTuYD_ns"; // safer in React/Vite
-
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+const genAI = new GoogleGenerativeAI("AIzaSyAsFXwRKDNF68oNYyLe6TTn-yhSTuYD_ns");
 
 const runChat = async (prompt) => {
+  // await new Promise((resolve) => setTimeout(resolve, 2000));
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 

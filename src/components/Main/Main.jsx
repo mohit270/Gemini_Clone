@@ -1,11 +1,83 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { assets } from '../../assets/assets';
 import GeminiResponse from "../GeminiResponse";
 import { Context } from '../../context/Context';
-import { TypeAnimation } from "react-type-animation";
+import { FiCopy, FiCheck } from "react-icons/fi"; 
 import './Main.css';
 const Main = () => {
     const {onSent,recentPromt,showResult,loading,resultData,setInput,input} = useContext(Context);
+    const [listening, setListening] = useState(false);
+    const [copied, setCopied] = useState(false);
+
+
+    // create recognition once
+    let inactivityTimer = null;
+
+    const startVoiceRecognition = () => {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            alert("Your browser does not support voice input.");
+            return;
+        }
+    
+        const recognition = new SpeechRecognition();
+        recognition.lang = "en-IN";
+        recognition.interimResults = true; // live transcription
+        recognition.maxAlternatives = 1;
+        recognition.continuous = true; // keep listening
+    
+        recognition.onstart = () => {
+            setListening(true);
+            console.log("🎤 Mic started");
+        };
+    
+        recognition.onresult = (event) => {
+            let transcript = "";
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                transcript += event.results[i][0].transcript;
+            }
+                        
+            // 👇 Show live text immediately
+            setInput(transcript);
+
+            // Reset inactivity timer
+            if (inactivityTimer) clearTimeout(inactivityTimer);
+
+            // 👇 Only auto-send if user is silent for 5s
+            inactivityTimer = setTimeout(() => {
+                onSent(transcript);   // send to Gemini
+                recognition.stop();   // stop mic
+                setListening(false);
+                console.log("⏳ Mic stopped after 5s of inactivity");
+            }, 3 * 1000);
+        };
+
+    
+        recognition.onerror = (event) => {
+            console.error("Error:", event.error);
+            setListening(false);
+        };
+    
+        recognition.onend = () => {
+            setListening(false);
+            console.log("🎤 Mic ended");
+        };
+    
+        recognition.start();
+    }; //   -------------- end --------------
+    //   -------------- Clipboard --------------
+    const copyToClipboard = (text) => {
+        if (!navigator.clipboard) {
+            alert("Clipboard not supported");
+            return;
+        }
+        navigator.clipboard.writeText(text)
+            .then(() => {
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000); // revert after 2s
+            })
+            .catch((err) => console.error("Failed to copy:", err));
+    };//   -------------- end --------------
   return (
     <div className='main'>
         <div className="nav">
@@ -50,16 +122,12 @@ const Main = () => {
                     <hr />
                     </div>
                 ) : (
-                //    <TypeAnimation
-                //         sequence={[resultData, 9999999]}
-                //         speed={200}
-                //         repeat={0}
-                //         cursor={false}
-                //         wrapper="div"
-                //     >
-                //     {(text) => }
-                //     </TypeAnimation>
+                <>
                 <GeminiResponse text={resultData} />
+                <span className="copy-icon" onClick={() => copyToClipboard(resultData)}>
+                    {copied ? <FiCheck color="green" /> : <FiCopy />}
+                </span>
+                </>
                 )}
                 </div>
             </div>}
@@ -67,11 +135,24 @@ const Main = () => {
             
             <div className="main-botton">
                 <div className="search-box">
-                    <input onChange={(e)=> setInput(e.target.value)} value={input} type="text" placeholder='Enter a prompt here'/>
+                    <input
+                        type="text"
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={(e) => {
+                        if (e.key === "Enter") onSent();
+                        }}
+                        placeholder="Enter a prompt here"
+                    />
                     <div>
-                        <img src={assets.gallery_icon} alt="" />
-                        <img src={assets.mic_icon} alt="" />
-                        {input?<img onClick={()=> onSent()} src={assets.send_icon} alt="" />:null}
+                        <img src={assets.gallery_icon} alt="Gallery" />
+                        <img
+                            src={assets.mic_icon}
+                            alt="Mic"
+                            onClick={startVoiceRecognition}
+                            className={listening ? "mic active" : "mic"}
+                        />
+                        {input?<img onClick={()=> onSent()} src={assets.send_icon} alt="Send" />:null}
                     </div>
                 </div>
                 <div className="bottom-info">
