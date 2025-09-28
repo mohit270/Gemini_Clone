@@ -1,5 +1,11 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-const genAI = new GoogleGenerativeAI("AIzaSyAsFXwRKDNF68oNYyLe6TTn-yhSTuYD_ns");
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+
+if (!apiKey) {
+  throw new Error("❌ Gemini API key is missing! Make sure VITE_GEMINI_API_KEY is in your .env file");
+}
+
+const genAI = new GoogleGenerativeAI(apiKey);
 
 const runChat = async (prompt) => {
   // await new Promise((resolve) => setTimeout(resolve, 2000));
